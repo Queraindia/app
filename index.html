@@ -1811,6 +1811,9 @@ button, input, select, textarea { max-width: 100%; }
                 <button class="empty-state-btn" id="btn-empty-folder">
                     <span class="material-symbols-rounded">folder_open</span> Open Folder
                 </button>
+                <button class="empty-state-btn" id="btn-install-app" type="button" style="margin-top:12px;">
+                    <span class="material-symbols-rounded">install_mobile</span> Install App
+                </button>
             </div>
         </div>
 
@@ -3213,6 +3216,63 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
         });
     });
 }
+</script>
+
+<script>
+/* Quera PWA install action — presentation/install only; audio logic is untouched. */
+(() => {
+    let installPromptEvent = null;
+    const installButton = document.getElementById("btn-install-app");
+
+    if (!installButton) return;
+
+    const isStandalone = () =>
+        window.matchMedia("(display-mode: standalone)").matches ||
+        window.navigator.standalone === true;
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+
+    const setInstalledState = () => {
+        installButton.style.display = "none";
+    };
+
+    if (isStandalone()) {
+        setInstalledState();
+    }
+
+    window.addEventListener("appinstalled", setInstalledState);
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+        event.preventDefault();
+        installPromptEvent = event;
+        installButton.style.display = "flex";
+    });
+
+    installButton.addEventListener("click", async () => {
+        if (isStandalone()) {
+            setInstalledState();
+            return;
+        }
+
+        if (installPromptEvent) {
+            installPromptEvent.prompt();
+            const choice = await installPromptEvent.userChoice;
+            installPromptEvent = null;
+
+            if (choice && choice.outcome === "accepted") {
+                setInstalledState();
+            }
+            return;
+        }
+
+        if (isIOS) {
+            alert('To install Quera: tap the Share button in Safari, then choose "Add to Home Screen".');
+        } else {
+            alert('Quera installation is not available yet. Open this site in Chrome, wait for the page to load, and try again. You can also use Chrome menu > Install app or Add to Home screen if available.');
+        }
+    });
+})();
 </script>
 
 <script>
