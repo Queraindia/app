@@ -1,4 +1,6 @@
 
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1000,7 +1002,7 @@
             .app-container { margin-bottom: 190px; }
             .settings-panel { width: 100%; border-radius: 0; }
         }
-        @media (max-width: 640px) {
+        @media (max-width: 900px) {
             body { padding: 8px; }
             .app-container { flex-direction: column; margin-bottom: 250px; gap: 8px; }
             .sidebar { width: 100%; max-height: 34vh; }
@@ -1108,7 +1110,7 @@
    Audio engine, DSP routing, Atmosphere logic and controls
    remain untouched. These rules only reshape the interface.
    ========================================================= */
-@media (max-width: 640px) {
+@media (max-width: 900px) {
     :root {
         --mobile-gutter: 12px;
         --mobile-player-height: 126px;
@@ -1423,19 +1425,12 @@
     .player-info-mini .track-title { max-width: 41vw; }
 }
 
-/* Tablet layout: keep the desktop library and listening view side by side. */
-@media (min-width: 641px) and (max-width: 900px) {
-    body { padding: 10px; gap: 10px; }
-    .app-container { gap: 10px; margin-bottom: 112px; }
-    .sidebar { width: 270px; padding: 16px 13px; }
-    .player-bar { left: 10px; right: 10px; bottom: 10px; }
-    .settings-panel { width: min(430px, 72vw); }
-}
+
 
 
 
 /* ===== Quera mobile UX rebuild: full-screen library + animated player sheet ===== */
-@media (max-width: 640px) {
+@media (max-width: 900px) {
     body { padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
     .app-container { gap: 0; }
     .sidebar {
@@ -1518,7 +1513,7 @@
     .player-controls { gap: clamp(18px, 6vw, 27px) !important; } .btn-play { width: 34px !important; height: 34px !important; } .btn-play .material-symbols-rounded { font-size: 21px !important; } .progress-wrapper { height: 9px !important; }
     .player-bar #visualizer-canvas { border-radius: 24px; }
 }
-@media (min-width: 641px) { .mobile-topbar, .mobile-library-close { display: none !important; } }
+@media (min-width: 901px) { .mobile-topbar, .mobile-library-close { display: none !important; } }
 
 
         /* Device access gate: original Quera UI and playback code remain unchanged. */
@@ -1634,7 +1629,7 @@ button, input, select, textarea { max-width: 100%; }
 .atmos-popup .atmos-scrim { position: fixed; inset: 0; }
 
 /* Mobile PWA: fit the entire physical display, including cutouts. */
-@media (max-width: 640px) {
+@media (max-width: 900px) {
     html, body {
         width: 100%;
         height: var(--quera-vh);
@@ -1723,6 +1718,77 @@ button, input, select, textarea { max-width: 100%; }
 }
 @media (display-mode: standalone), (display-mode: fullscreen) {
     html, body { height: 100dvh; max-height: 100dvh; }
+}
+
+
+/* Android layout repairs: presentation only. */
+.app-container, .app-container.ready { transform: none; }
+.settings-panel { visibility: hidden; pointer-events: none; }
+.settings-panel.open { visibility: visible; pointer-events: auto; }
+.atmos-popup:not(.show) { visibility: hidden; }
+.atmos-popup.show { visibility: visible; }
+.setting-text-group, .track-details-sm, .hero-info, .atmos-quick-copy { min-width: 0; }
+.setting-title-line { flex-wrap: wrap; }
+.setting-subtitle-text, .atmos-quick-title, .atmos-quick-desc { overflow-wrap: anywhere; }
+.settings-header, .settings-section, .setting-card, .brand-zone, .upload-actions, .library-header, .track-item { flex-shrink: 0; }
+.eq-row input[type=range] { min-width: 0; }
+.hero-art.default-art { visibility: visible; }
+.hero-art-wrap:has(.hero-art.default-art)::before { content: none; }
+.hero-art-wrap { flex-shrink: 0; }
+@media (max-width: 900px) {
+    body { padding: var(--quera-safe-top) var(--quera-safe-right) var(--quera-safe-bottom) var(--quera-safe-left) !important; gap: 0; }
+    .app-container { margin: 0 !important; overflow: visible; z-index: auto; isolation: auto; }
+    .app-container.ready { opacity: 1; }
+    .main-view { flex: 1 1 0; width: 100%; border: 0; border-radius: 0; overflow-x: hidden; overscroll-behavior-y: contain; scroll-padding-top: 80px; }
+    .mobile-topbar { flex: 0 0 auto; margin: 0; border-radius: 0; padding: 10px 14px; background: #101018; z-index: 20; }
+    .mobile-menu-btn, .mobile-top-settings, .mobile-library-close, .close-settings { width: 44px; height: 44px; flex-shrink: 0; }
+    .empty-state { display: none; position: relative; inset: auto; height: auto; min-height: 0; flex: 1 0 auto; padding: 32px 16px; }
+    .empty-state.visible { display: flex; }
+    .empty-state-glass { padding: 18px 0; }
+    .now-playing-hero, .dsp-section { flex-shrink: 0; }
+    .hero-art-wrap, .hero-art-wrap:has(.hero-art.default-art) { width: min(60vw, 230px); height: auto; aspect-ratio: 1; }
+    .hero-art { display: block; width: 100%; height: 100%; object-fit: cover; }
+    .hero-artist { overflow-wrap: anywhere; }
+    .sidebar { z-index: 2100 !important; height: var(--quera-vh) !important; padding-left: max(16px, var(--quera-safe-left)) !important; padding-right: max(16px, var(--quera-safe-right)) !important; }
+    .settings-panel { z-index: 2200 !important; height: var(--quera-vh); max-height: var(--quera-vh); width: 100%; padding-left: max(16px, var(--quera-safe-left)); padding-right: max(16px, var(--quera-safe-right)); }
+    .settings-header { position: sticky; top: -16px; z-index: 3; background: #0b0b12; padding: 12px 0; }
+    .setting-row-main { gap: 12px; }
+    .setting-title-line { gap: 5px; line-height: 1.45; }
+    .setting-subtitle-text { line-height: 1.6; }
+    .track-list { margin: 0; }
+    .track-item { width: 100%; }
+    .player-bar { height: 156px !important; min-height: 156px; padding: 10px 12px 6px !important; grid-template-rows: 48px 1fr !important; gap: 4px 8px !important; overflow: hidden !important; z-index: 1400 !important; }
+    body.ui-player-visible .main-view { padding-bottom: calc(172px + var(--quera-safe-bottom)); }
+    .player-left { min-width: 0; width: auto; }
+    .player-info-mini { flex: 1; }
+    .player-info-mini .track-title { max-width: 100% !important; }
+    .player-info-mini .track-artist { font-size: 10px !important; }
+    .time-display { font-size: 10px; margin-top: 1px; flex-wrap: wrap; gap: 4px; color: #a5a5b5; }
+    .player-right { min-width: 0; width: 78px; }
+    .player-right .control-group:first-child { display: none; }
+    .player-right .control-group { gap: 4px; }
+    input[type=range].control-slider { width: 54px; }
+    input[type=range].control-slider::-webkit-slider-thumb { width: 16px; height: 16px; }
+    .player-center { min-width: 0; display: flex; gap: 0; justify-content: space-between; }
+    .player-controls { width: 100%; justify-content: space-evenly; gap: 0 !important; }
+    .player-controls .btn-icon, .player-controls .btn-play { width: 44px !important; height: 44px !important; flex: 0 0 44px; }
+    .progress-wrapper { height: 28px !important; flex-shrink: 0; }
+    .progress-bg { height: 3px; }
+    .progress-fill::after { transform: translateY(-50%) scale(1); }
+    .atmos-popup { z-index: 3000; }
+    .splash-screen { z-index: 4000; }
+    .atmos-card { flex-shrink: 0; }
+}
+@media (max-width: 900px) and (orientation: landscape) {
+    .now-playing-hero { flex-direction: row; text-align: left; padding: 20px; }
+    .hero-art-wrap, .hero-art-wrap:has(.hero-art.default-art) { width: 140px; }
+    .hero-info { align-items: flex-start; }
+    .hero-title { font-size: 26px; }
+    .hero-artist { justify-content: flex-start; }
+    .dsp-grid { grid-template-columns: repeat(4,minmax(0,1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
 
 </style>
@@ -3292,6 +3358,40 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
     if (window.visualViewport) {
         window.visualViewport.addEventListener('resize', updateQueraViewport, { passive: true });
     }
+})();
+</script>
+
+
+<script>
+/* UI state only; no playback, audio graph, DSP or file handling changes. */
+(() => {
+    const library = document.querySelector('.sidebar');
+    const settings = document.getElementById('settings-panel');
+    const sheet = document.getElementById('mobile-player-sheet');
+    const main = document.querySelector('.main-view');
+    const popup = document.getElementById('atmos-popup');
+    const sync = () => {
+        const mobile = matchMedia('(max-width: 900px)').matches;
+        const libraryOpen = mobile && library.classList.contains('mobile-library-open');
+        const settingsOpen = settings.classList.contains('open');
+        const popupOpen = popup.classList.contains('show');
+        document.body.classList.toggle('ui-player-visible', sheet.classList.contains('is-open'));
+        main.inert = libraryOpen || settingsOpen || popupOpen;
+        sheet.inert = libraryOpen || settingsOpen || popupOpen || (mobile && !sheet.classList.contains('is-open'));
+        library.inert = (mobile && !libraryOpen) || settingsOpen || popupOpen;
+        settings.inert = !settingsOpen || popupOpen;
+        popup.inert = !popupOpen;
+        document.getElementById('mobile-library-btn').setAttribute('aria-expanded', String(libraryOpen));
+        document.getElementById('mobile-settings-btn').setAttribute('aria-expanded', String(settingsOpen));
+    };
+    [library, settings, sheet, popup].forEach(node => new MutationObserver(sync).observe(node, {attributes:true, attributeFilter:['class']}));
+    window.addEventListener('resize', sync, {passive:true});
+    document.addEventListener('keydown', event => {
+        if (event.key !== 'Escape' || popup.classList.contains('show')) return;
+        settings.classList.remove('open');
+        library.classList.remove('mobile-library-open');
+    });
+    sync();
 })();
 </script>
 
