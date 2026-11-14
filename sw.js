@@ -1,42 +1,87 @@
-const CACHE_NAME = "quera-mobile-shell-v1";
-const APP_SHELL = ["/", "/index.html", "/manifest.json", "/icons/quera-192.png", "/icons/quera-512.png"];
+/* Quera Music: app-shell caching only. No library or audio data is modified. */
+const BASE = self.registration.scope;
+const PREFIX = 'quera-studio-plus-' + encodeURIComponent(BASE) + '-';
+const CACHE = PREFIX + 'v7ef14fc947ea';
+const url = path => new URL(path, BASE).href;
+const INDEX = url('./index.html');
+const SHELL = [
+  './index.html', './manifest.json',
+  './icons/icon-192.png', './icons/icon-512.png',
+  './icons/icon-maskable-192.png', './icons/icon-maskable-512.png',
+  './icons/apple-touch-icon.png'
+].map(url);
+const CDN = 'https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js';
+const FONTS = 'https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=Poppins:ital,wght@0,300;0,700;0,900;1,800&display=swap';
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))
-  );
-  self.skipWaiting();
+self.addEventListener('install', event => {
+  event.waitUntil((async () => {
+    const cache = await caches.open(CACHE);
+    await cache.addAll(SHELL);
+    // Optional external dependencies: failure must not prevent installation.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    try {
+      await Promise.allSettled([CDN, FONTS].map(async src => {
+        const req = new Request(src, { mode: 'no-cors', signal: controller.signal });
+        const res = await fetch(req);
+        if (res.ok || res.type === 'opaque') await cache.put(req, res);
+      }));
+    } finally {
+      clearTimeout(timeout);
+    }
+    await self.skipWaiting();
+  })());
 });
 
-self.addEventListener("activate", event => {
-  event.waitUntil(
-    caches.keys().then(keys => Promise.all(
-      keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-    ))
-  );
-  self.clients.claim();
+self.addEventListener('activate', event => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k.startsWith(PREFIX) && k !== CACHE)
+      .map(k => caches.delete(k)));
+    await self.clients.claim();
+  })());
 });
 
-self.addEventListener("fetch", event => {
-  const request = event.request;
-  const url = new URL(request.url);
+self.addEventListener('fetch', event => {
+  const req = event.request;
+  if (req.method !== 'GET' || req.headers.has('range')) return;
+  const target = new URL(req.url);
+  const root = new URL(BASE);
+  const isAppNavigation = req.mode === 'navigate' &&
+    target.origin === root.origin &&
+    (target.pathname === root.pathname || target.pathname === new URL(INDEX).pathname);
 
-  // Only cache same-origin GET requests. Audio uploads and third-party assets
-  // continue using the browser's normal network path.
-  if (request.method !== "GET" || url.origin !== self.location.origin) return;
-
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).then(response => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put("/index.html", copy));
-        return response;
-      }).catch(() => caches.match("/index.html"))
-    );
+  if (isAppNavigation) {
+    event.respondWith((async () => {
+      try {
+        const res = await fetch(req);
+        if (res.ok) {
+          const cache = await caches.open(CACHE);
+          await cache.put(INDEX, res.clone());
+          return res;
+        }
+        return res;
+      } catch (error) {
+        return (await caches.open(CACHE)).match(INDEX).then(hit => hit || Response.error());
+      }
+    })());
     return;
   }
 
-  event.respondWith(
-    caches.match(request).then(cached => cached || fetch(request))
-  );
+  const isShell = SHELL.includes(target.href);
+  const isExternal = target.href === CDN || target.href === FONTS ||
+    target.origin === 'https://fonts.gstatic.com';
+  if (!isShell && !isExternal) return;
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE);
+    const hit = await cache.match(req);
+    if (hit) return hit;
+    try {
+      const res = await fetch(req);
+      if (res.ok || res.type === 'opaque') {
+        try { await cache.put(req, res.clone()); } catch (_) {}
+      }
+      return res;
+    } catch (_) { return Response.error(); }
+  })());
 });
